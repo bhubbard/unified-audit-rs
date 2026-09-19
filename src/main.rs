@@ -63,15 +63,17 @@ fn main() {
         ignore_rules,
     };
 
-    println!("🔍 Scanning static build in: {}", args.dir.display());
-    let reports = audit_directory(&args.dir, &options);
-    let elapsed = start_time.elapsed();
-
     let report_format = match args.format.to_lowercase().as_str() {
         "json" => ReportFormat::Json,
         "github" => ReportFormat::Github,
         _ => ReportFormat::Terminal,
     };
+
+    if report_format != ReportFormat::Json {
+        println!("🔍 Scanning static build in: {}", args.dir.display());
+    }
+    let reports = audit_directory(&args.dir, &options);
+    let elapsed = start_time.elapsed();
 
     print_report(&reports, elapsed, report_format, args.verbose);
 

@@ -58,10 +58,30 @@ pub fn audit_a11y(document: &Html) -> Vec<Issue> {
 
         let mut has_label = !aria_label.is_empty() || !aria_labelledby.is_empty() || !title.is_empty();
 
+        // Check for explicit label: <label for="id">
         if !has_label && !id.is_empty() {
             let label_sel = Selector::parse(&format!("label[for=\"{}\"]", id)).unwrap();
             if document.select(&label_sel).next().is_some() {
                 has_label = true;
+            }
+        }
+
+        // Check for implicit label: input is a descendant of a <label> element
+        if !has_label {
+            let node_id = input.id();
+            let mut current = document.tree.get(node_id);
+            while let Some(node) = current {
+                if let Some(parent) = node.parent() {
+                    if let Some(el) = parent.value().as_element() {
+                        if el.name() == "label" {
+                            has_label = true;
+                            break;
+                        }
+                    }
+                    current = Some(parent);
+                } else {
+                    break;
+                }
             }
         }
 

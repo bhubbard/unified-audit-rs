@@ -67,6 +67,40 @@ fn test_a11y_violations() {
 }
 
 #[test]
+fn test_a11y_implicit_labels_not_flagged() {
+    let html = r#"<!DOCTYPE html>
+<html lang="en">
+<body>
+    <!-- Implicit label: input nested inside <label> — valid per HTML5/WCAG -->
+    <label>First name <input type="text" name="firstName" /></label>
+
+    <!-- Wrapping label with checkbox (newsletter consent pattern) -->
+    <label class="flex items-start">
+        <input type="checkbox" name="emailConsent" value="yes" />
+        <span>I agree to the privacy policy.</span>
+    </label>
+
+    <!-- Explicit label via for/id -->
+    <label for="email-field">Email</label>
+    <input type="email" id="email-field" name="email" />
+
+    <!-- aria-label -->
+    <input type="search" aria-label="Search the site" />
+
+    <!-- Genuinely unlabelled — this one SHOULD be flagged -->
+    <input type="tel" name="phone" />
+</body>
+</html>"#;
+
+    let doc = Html::parse_document(html);
+    let issues = audit_a11y(&doc);
+
+    let unlabelled: Vec<_> = issues.iter().filter(|i| i.code == "A11Y_UNLABELLED_INPUT").collect();
+    assert_eq!(unlabelled.len(), 1, "Expected exactly 1 unlabelled input (phone), got: {:?}", unlabelled);
+    assert!(unlabelled[0].message.contains("<input>"), "Should flag the <input> tag");
+}
+
+#[test]
 fn test_schema_article_validation() {
     let html_valid = r#"
     <script type="application/ld+json">
