@@ -1,0 +1,35 @@
+[package]
+name = "unified-audit-rs"
+version = "0.1.0"
+edition = "2024"
+authors = ["Brandon Hubbard"]
+description = "Consolidated sub-second post-build CI verification engine for Astro static sites covering SEO, a11y, schema, links, and Capo"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/bhubbard/unified-audit-rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+scraper = "0.22"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rayon = "1.10"
+walkdir = "2.5"
+regex = "1.11"
+url = "2.5"
+anyhow = "1.0"
+colored = "3.0"
+
+[[bin]]
+name = "unified-audit"
+path = "src/main.rs"
+
+[lib]
+name = "unified_audit"
+path = "src/lib.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+strip = true
