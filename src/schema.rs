@@ -1,10 +1,13 @@
+use crate::models::{Category, Issue, Severity};
 use regex::Regex;
 use serde_json::Value;
-use crate::models::{Category, Issue, Severity};
 
 pub fn audit_schema(html: &str) -> Vec<Issue> {
     let mut issues = Vec::new();
-    let json_ld_re = Regex::new(r#"(?is)<script[^>]*type=(?:["']?application/ld\+json["']?)[^>]*>(.*?)</script>"#).unwrap();
+    let json_ld_re = Regex::new(
+        r#"(?is)<script[^>]*type=(?:["']?application/ld\+json["']?)[^>]*>(.*?)</script>"#,
+    )
+    .unwrap();
 
     let mut block_idx = 0;
     for caps in json_ld_re.captures_iter(html) {
@@ -27,7 +30,10 @@ pub fn audit_schema(html: &str) -> Vec<Issue> {
                     code: "SCHEMA_INVALID_SYNTAX".to_string(),
                     category: Category::Schema,
                     severity: Severity::Error,
-                    message: format!("JSON syntax error in structured data block #{}: {}", block_idx, e),
+                    message: format!(
+                        "JSON syntax error in structured data block #{}: {}",
+                        block_idx, e
+                    ),
                     selector: Some("script[type=\"application/ld+json\"]".to_string()),
                 });
             }
@@ -77,19 +83,33 @@ fn is_blank(val: Option<&Value>) -> bool {
     }
 }
 
-fn req(map: &serde_json::Map<String, Value>, field: &str, issues: &mut Vec<Issue>, path: &str, entity_type: &str) {
+fn req(
+    map: &serde_json::Map<String, Value>,
+    field: &str,
+    issues: &mut Vec<Issue>,
+    path: &str,
+    entity_type: &str,
+) {
     if is_blank(map.get(field)) {
         issues.push(Issue {
             code: "SCHEMA_MISSING_REQUIRED_FIELD".to_string(),
             category: Category::Schema,
             severity: Severity::Error,
-            message: format!("{}: {} is missing required field \"{}\"", path, entity_type, field),
+            message: format!(
+                "{}: {} is missing required field \"{}\"",
+                path, entity_type, field
+            ),
             selector: Some("script[type=\"application/ld+json\"]".to_string()),
         });
     }
 }
 
-fn validate_entity_type(entity_type: &str, map: &serde_json::Map<String, Value>, issues: &mut Vec<Issue>, path: &str) {
+fn validate_entity_type(
+    entity_type: &str,
+    map: &serde_json::Map<String, Value>,
+    issues: &mut Vec<Issue>,
+    path: &str,
+) {
     match entity_type {
         "BlogPosting" | "Article" | "NewsArticle" => {
             req(map, "headline", issues, path, entity_type);
@@ -116,37 +136,38 @@ fn validate_entity_type(entity_type: &str, map: &serde_json::Map<String, Value>,
             req(map, "name", issues, path, entity_type);
             req(map, "url", issues, path, entity_type);
         }
-        "BreadcrumbList" => {
-            match map.get("itemListElement") {
-                Some(Value::Array(items)) if !items.is_empty() => {
-                    for (i, item) in items.iter().enumerate() {
-                        let item_path = format!("{}.itemListElement[{}]", path, i);
-                        if let Value::Object(item_map) = item {
-                            req(item_map, "name", issues, &item_path, "ListItem");
-                            req(item_map, "position", issues, &item_path, "ListItem");
-                            if i < items.len() - 1 && is_blank(item_map.get("item")) {
-                                issues.push(Issue {
+        "BreadcrumbList" => match map.get("itemListElement") {
+            Some(Value::Array(items)) if !items.is_empty() => {
+                for (i, item) in items.iter().enumerate() {
+                    let item_path = format!("{}.itemListElement[{}]", path, i);
+                    if let Value::Object(item_map) = item {
+                        req(item_map, "name", issues, &item_path, "ListItem");
+                        req(item_map, "position", issues, &item_path, "ListItem");
+                        if i < items.len() - 1 && is_blank(item_map.get("item")) {
+                            issues.push(Issue {
                                     code: "SCHEMA_BREADCRUMB_MISSING_ITEM".to_string(),
                                     category: Category::Schema,
                                     severity: Severity::Error,
                                     message: format!("{}: Breadcrumb intermediate item is missing target URL \"item\"", item_path),
                                     selector: Some("script[type=\"application/ld+json\"]".to_string()),
                                 });
-                            }
                         }
                     }
                 }
-                _ => {
-                    issues.push(Issue {
-                        code: "SCHEMA_BREADCRUMB_EMPTY".to_string(),
-                        category: Category::Schema,
-                        severity: Severity::Error,
-                        message: format!("{}: BreadcrumbList \"itemListElement\" must be a non-empty array", path),
-                        selector: Some("script[type=\"application/ld+json\"]".to_string()),
-                    });
-                }
             }
-        }
+            _ => {
+                issues.push(Issue {
+                    code: "SCHEMA_BREADCRUMB_EMPTY".to_string(),
+                    category: Category::Schema,
+                    severity: Severity::Error,
+                    message: format!(
+                        "{}: BreadcrumbList \"itemListElement\" must be a non-empty array",
+                        path
+                    ),
+                    selector: Some("script[type=\"application/ld+json\"]".to_string()),
+                });
+            }
+        },
         "FAQPage" => {
             match map.get("mainEntity") {
                 Some(Value::Array(items)) if !items.is_empty() => {

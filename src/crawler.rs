@@ -1,16 +1,16 @@
-use std::fs;
-use std::path::{Path, PathBuf};
 use rayon::prelude::*;
 use scraper::Html;
+use std::fs;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
-use crate::models::PageAuditReport;
-use crate::seo::audit_seo;
 use crate::a11y::audit_a11y;
-use crate::images::audit_images;
-use crate::schema::audit_schema;
-use crate::links::{audit_links, LinkAuditConfig};
 use crate::capo::audit_capo;
+use crate::images::audit_images;
+use crate::links::{LinkAuditConfig, audit_links};
+use crate::models::PageAuditReport;
+use crate::schema::audit_schema;
+use crate::seo::audit_seo;
 
 pub struct AuditOptions {
     pub skip_link_patterns: Vec<String>,
@@ -26,7 +26,11 @@ impl Default for AuditOptions {
     }
 }
 
-pub fn audit_html_file(file_path: &Path, root_dir: &Path, options: &AuditOptions) -> Option<PageAuditReport> {
+pub fn audit_html_file(
+    file_path: &Path,
+    root_dir: &Path,
+    options: &AuditOptions,
+) -> Option<PageAuditReport> {
     let content = match fs::read_to_string(file_path) {
         Ok(c) => c,
         Err(_) => return None,

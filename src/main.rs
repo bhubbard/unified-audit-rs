@@ -1,14 +1,16 @@
+use clap::Parser;
 use std::path::PathBuf;
 use std::process::exit;
 use std::time::Instant;
-use clap::Parser;
 
-use unified_audit::{
-    audit_directory, print_report, AuditOptions, ReportFormat,
-};
+use unified_audit::{AuditOptions, ReportFormat, audit_directory, print_report};
 
 #[derive(Parser, Debug)]
-#[command(author, version, about = "High-performance unified post-build CI verification engine for Astro sites")]
+#[command(
+    author,
+    version,
+    about = "High-performance unified post-build CI verification engine for Astro sites"
+)]
 struct Args {
     /// Directory containing built HTML files (e.g. dist/)
     #[arg(default_value = "dist")]
@@ -40,7 +42,10 @@ fn main() {
     let start_time = Instant::now();
 
     if !args.dir.is_dir() {
-        eprintln!("Error: target directory '{}' does not exist", args.dir.display());
+        eprintln!(
+            "Error: target directory '{}' does not exist",
+            args.dir.display()
+        );
         exit(1);
     }
 
@@ -80,7 +85,10 @@ fn main() {
     let total_errors: usize = reports.iter().map(|r| r.errors_count()).sum();
 
     if args.strict && total_errors > 0 {
-        eprintln!("\n❌ Audit failed: {} error(s) detected in strict mode.", total_errors);
+        eprintln!(
+            "\n❌ Audit failed: {} error(s) detected in strict mode.",
+            total_errors
+        );
         exit(1);
     }
 }

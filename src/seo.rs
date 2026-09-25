@@ -1,5 +1,5 @@
-use scraper::{Html, Selector};
 use crate::models::{Category, Issue, Severity};
+use scraper::{Html, Selector};
 
 pub fn audit_seo(document: &Html) -> Vec<Issue> {
     let mut issues = Vec::new();
@@ -39,7 +39,11 @@ pub fn audit_seo(document: &Html) -> Vec<Issue> {
                 code: "SEO_TITLE_TOO_SHORT".to_string(),
                 category: Category::Seo,
                 severity: Severity::Warning,
-                message: format!("<title> is very short ({} chars). Recommended 30–65 chars: \"{}\"", title_text.len(), title_text),
+                message: format!(
+                    "<title> is very short ({} chars). Recommended 30–65 chars: \"{}\"",
+                    title_text.len(),
+                    title_text
+                ),
                 selector: Some("head > title".to_string()),
             });
         } else if title_text.len() > 70 {
@@ -47,7 +51,10 @@ pub fn audit_seo(document: &Html) -> Vec<Issue> {
                 code: "SEO_TITLE_TOO_LONG".to_string(),
                 category: Category::Seo,
                 severity: Severity::Warning,
-                message: format!("<title> exceeds 70 chars ({} chars) and will likely be truncated in SERPs", title_text.len()),
+                message: format!(
+                    "<title> exceeds 70 chars ({} chars) and will likely be truncated in SERPs",
+                    title_text.len()
+                ),
                 selector: Some("head > title".to_string()),
             });
         }
@@ -70,7 +77,10 @@ pub fn audit_seo(document: &Html) -> Vec<Issue> {
                 code: "SEO_MULTIPLE_DESCRIPTIONS".to_string(),
                 category: Category::Seo,
                 severity: Severity::Warning,
-                message: format!("Multiple ({}x) meta descriptions found in <head>", descriptions.len()),
+                message: format!(
+                    "Multiple ({}x) meta descriptions found in <head>",
+                    descriptions.len()
+                ),
                 selector: Some("meta[name=\"description\"]".to_string()),
             });
         }
@@ -89,7 +99,10 @@ pub fn audit_seo(document: &Html) -> Vec<Issue> {
                     code: "SEO_DESCRIPTION_TOO_SHORT".to_string(),
                     category: Category::Seo,
                     severity: Severity::Warning,
-                    message: format!("Meta description is very short ({} chars). Recommended 50–160 chars.", trimmed.len()),
+                    message: format!(
+                        "Meta description is very short ({} chars). Recommended 50–160 chars.",
+                        trimmed.len()
+                    ),
                     selector: Some("meta[name=\"description\"]".to_string()),
                 });
             } else if trimmed.len() > 165 {
@@ -165,7 +178,10 @@ pub fn audit_seo(document: &Html) -> Vec<Issue> {
             code: "SEO_MULTIPLE_H1".to_string(),
             category: Category::Seo,
             severity: Severity::Warning,
-            message: format!("Page contains {}x <h1> tags (recommended: exactly 1 per page)", h1_tags.len()),
+            message: format!(
+                "Page contains {}x <h1> tags (recommended: exactly 1 per page)",
+                h1_tags.len()
+            ),
             selector: Some("h1".to_string()),
         });
     }

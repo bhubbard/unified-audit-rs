@@ -1,5 +1,5 @@
-use regex::Regex;
 use crate::models::{Category, Issue, Severity};
+use regex::Regex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CapoPriority {
@@ -55,7 +55,10 @@ pub fn classify_element(raw: &str, index: usize) -> HeadElement {
             } else {
                 CapoPriority::SyncStyles
             }
-        } else if trimmed.contains("prefetch") || trimmed.contains("prerender") || trimmed.contains("dns-prefetch") {
+        } else if trimmed.contains("prefetch")
+            || trimmed.contains("prerender")
+            || trimmed.contains("dns-prefetch")
+        {
             CapoPriority::PrefetchPrerender
         } else {
             CapoPriority::OtherMeta
@@ -69,7 +72,10 @@ pub fn classify_element(raw: &str, index: usize) -> HeadElement {
     } else if trimmed.starts_with("<script") {
         if trimmed.contains("async") {
             CapoPriority::AsyncScript
-        } else if trimmed.contains("defer") || trimmed.contains("type=\"module\"") || trimmed.contains("type='module'") {
+        } else if trimmed.contains("defer")
+            || trimmed.contains("type=\"module\"")
+            || trimmed.contains("type='module'")
+        {
             CapoPriority::DeferScript
         } else {
             CapoPriority::SyncScript
@@ -145,12 +151,19 @@ pub fn audit_capo(html: &str) -> (f64, Vec<Issue>) {
     for el in &elements {
         if el.priority == CapoPriority::SyncScript {
             found_sync_script = true;
-        } else if found_sync_script && (el.priority == CapoPriority::SyncStyles || el.priority == CapoPriority::MetaCharset || el.priority == CapoPriority::MetaViewport) {
+        } else if found_sync_script
+            && (el.priority == CapoPriority::SyncStyles
+                || el.priority == CapoPriority::MetaCharset
+                || el.priority == CapoPriority::MetaViewport)
+        {
             issues.push(Issue {
                 code: "CAPO_BLOCKING_SCRIPT_PRECEDES_CRITICAL".to_string(),
                 category: Category::Capo,
                 severity: Severity::Warning,
-                message: format!("Synchronous render-blocking script appears before critical tag: {}", el.raw),
+                message: format!(
+                    "Synchronous render-blocking script appears before critical tag: {}",
+                    el.raw
+                ),
                 selector: Some("head script".to_string()),
             });
             break;

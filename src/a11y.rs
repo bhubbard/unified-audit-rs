@@ -1,6 +1,6 @@
-use std::collections::HashSet;
-use scraper::{Html, Selector};
 use crate::models::{Category, Issue, Severity};
+use scraper::{Html, Selector};
+use std::collections::HashSet;
 
 pub fn audit_a11y(document: &Html) -> Vec<Issue> {
     let mut issues = Vec::new();
@@ -14,7 +14,8 @@ pub fn audit_a11y(document: &Html) -> Vec<Issue> {
                 code: "A11Y_MISSING_LANG".to_string(),
                 category: Category::A11y,
                 severity: Severity::Error,
-                message: "<html> element is missing a valid 'lang' attribute (WCAG 3.1.1)".to_string(),
+                message: "<html> element is missing a valid 'lang' attribute (WCAG 3.1.1)"
+                    .to_string(),
                 selector: Some("html".to_string()),
             });
         }
@@ -28,10 +29,16 @@ pub fn audit_a11y(document: &Html) -> Vec<Issue> {
         let aria_labelledby = btn.value().attr("aria-labelledby").unwrap_or("").trim();
         let title = btn.value().attr("title").unwrap_or("").trim();
 
-        if text.is_empty() && aria_label.is_empty() && aria_labelledby.is_empty() && title.is_empty() {
+        if text.is_empty()
+            && aria_label.is_empty()
+            && aria_labelledby.is_empty()
+            && title.is_empty()
+        {
             // Check if it has an img child with alt text
             let img_sel = Selector::parse("img").unwrap();
-            let has_img_with_alt = btn.select(&img_sel).any(|img| !img.value().attr("alt").unwrap_or("").trim().is_empty());
+            let has_img_with_alt = btn
+                .select(&img_sel)
+                .any(|img| !img.value().attr("alt").unwrap_or("").trim().is_empty());
             let svg_sel = Selector::parse("svg").unwrap();
             let has_svg = btn.select(&svg_sel).next().is_some();
 
@@ -40,7 +47,10 @@ pub fn audit_a11y(document: &Html) -> Vec<Issue> {
                     code: "A11Y_EMPTY_BUTTON".to_string(),
                     category: Category::A11y,
                     severity: Severity::Error,
-                    message: format!("Button{} lacks an accessible name / text label (WCAG 4.1.2)", if has_svg { " containing SVG" } else { "" }),
+                    message: format!(
+                        "Button{} lacks an accessible name / text label (WCAG 4.1.2)",
+                        if has_svg { " containing SVG" } else { "" }
+                    ),
                     selector: Some("button".to_string()),
                 });
             }
@@ -56,7 +66,8 @@ pub fn audit_a11y(document: &Html) -> Vec<Issue> {
         let title = input.value().attr("title").unwrap_or("").trim();
         let placeholder = input.value().attr("placeholder").unwrap_or("").trim();
 
-        let mut has_label = !aria_label.is_empty() || !aria_labelledby.is_empty() || !title.is_empty();
+        let mut has_label =
+            !aria_label.is_empty() || !aria_labelledby.is_empty() || !title.is_empty();
 
         // Check for explicit label: <label for="id">
         if !has_label && !id.is_empty() {
@@ -112,7 +123,10 @@ pub fn audit_a11y(document: &Html) -> Vec<Issue> {
                         code: "A11Y_DUPLICATE_ID".to_string(),
                         category: Category::A11y,
                         severity: Severity::Warning,
-                        message: format!("Duplicate HTML id=\"{}\" found on page (WCAG 4.1.1)", trimmed),
+                        message: format!(
+                            "Duplicate HTML id=\"{}\" found on page (WCAG 4.1.1)",
+                            trimmed
+                        ),
                         selector: Some(format!("#{}", trimmed)),
                     });
                 }

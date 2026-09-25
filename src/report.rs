@@ -1,7 +1,7 @@
+use crate::models::{Category, PageAuditReport, Severity};
+use colored::*;
 use std::collections::HashMap;
 use std::time::Duration;
-use colored::*;
-use crate::models::{Category, PageAuditReport, Severity};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReportFormat {
@@ -10,7 +10,12 @@ pub enum ReportFormat {
     Github,
 }
 
-pub fn print_report(reports: &[PageAuditReport], elapsed: Duration, format: ReportFormat, verbose: bool) {
+pub fn print_report(
+    reports: &[PageAuditReport],
+    elapsed: Duration,
+    format: ReportFormat,
+    verbose: bool,
+) {
     match format {
         ReportFormat::Json => {
             if let Ok(json) = serde_json::to_string_pretty(reports) {
@@ -25,7 +30,13 @@ pub fn print_report(reports: &[PageAuditReport], elapsed: Duration, format: Repo
                         Severity::Warning => "warning",
                         Severity::Info => "notice",
                     };
-                    println!("::{} file={}::[{}] {}", level, report.file_path.display(), issue.code, issue.message);
+                    println!(
+                        "::{} file={}::[{}] {}",
+                        level,
+                        report.file_path.display(),
+                        issue.code,
+                        issue.message
+                    );
                 }
             }
             print_terminal_summary(reports, elapsed);
@@ -54,7 +65,12 @@ fn print_terminal_report(reports: &[PageAuditReport], elapsed: Duration, verbose
                 "WARN".yellow().bold()
             };
 
-            println!("\n{} {} (Capo: {:.1}%)", status, report.url_path.bold(), report.capo_score);
+            println!(
+                "\n{} {} (Capo: {:.1}%)",
+                status,
+                report.url_path.bold(),
+                report.capo_score
+            );
             for issue in &report.issues {
                 if issue.severity == Severity::Error || verbose {
                     let badge = match issue.severity {
@@ -82,12 +98,35 @@ fn print_terminal_summary(reports: &[PageAuditReport], elapsed: Duration) {
         100.0
     };
 
-    println!("\n{}", "────────────────────────────────────────────────────────────".dimmed());
+    println!(
+        "\n{}",
+        "────────────────────────────────────────────────────────────".dimmed()
+    );
     println!("📋 {}", "Audit Summary Dashboard".bold());
-    println!("   Pages Scanned:         {}", total_pages.to_string().bold());
+    println!(
+        "   Pages Scanned:         {}",
+        total_pages.to_string().bold()
+    );
     println!("   Execution Time:        {:.2?}", elapsed);
     println!("   Average Capo Score:    {:.1}%", avg_capo);
-    println!("   Errors:                {}", if total_errors > 0 { total_errors.to_string().red().bold() } else { "0".green().bold() });
-    println!("   Warnings:              {}", if total_warnings > 0 { total_warnings.to_string().yellow().bold() } else { "0".green().bold() });
-    println!("{}", "────────────────────────────────────────────────────────────".dimmed());
+    println!(
+        "   Errors:                {}",
+        if total_errors > 0 {
+            total_errors.to_string().red().bold()
+        } else {
+            "0".green().bold()
+        }
+    );
+    println!(
+        "   Warnings:              {}",
+        if total_warnings > 0 {
+            total_warnings.to_string().yellow().bold()
+        } else {
+            "0".green().bold()
+        }
+    );
+    println!(
+        "{}",
+        "────────────────────────────────────────────────────────────".dimmed()
+    );
 }

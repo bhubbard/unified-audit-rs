@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Severity {
@@ -50,10 +50,16 @@ pub struct PageAuditReport {
 
 impl PageAuditReport {
     pub fn errors_count(&self) -> usize {
-        self.issues.iter().filter(|i| i.severity == Severity::Error).count()
+        self.issues
+            .iter()
+            .filter(|i| i.severity == Severity::Error)
+            .count()
     }
 
     pub fn warnings_count(&self) -> usize {
-        self.issues.iter().filter(|i| i.severity == Severity::Warning).count()
+        self.issues
+            .iter()
+            .filter(|i| i.severity == Severity::Warning)
+            .count()
     }
 }

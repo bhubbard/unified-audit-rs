@@ -1,5 +1,5 @@
-use scraper::{Html, Selector};
 use crate::models::{Category, Issue, Severity};
+use scraper::{Html, Selector};
 
 pub fn audit_images(document: &Html) -> Vec<Issue> {
     let mut issues = Vec::new();
@@ -24,12 +24,20 @@ pub fn audit_images(document: &Html) -> Vec<Issue> {
             }
             Some(a) => {
                 let trimmed = a.trim().to_lowercase();
-                if trimmed == "image" || trimmed == "picture" || trimmed == "photo" || trimmed == "graphic" || trimmed == "untitled" {
+                if trimmed == "image"
+                    || trimmed == "picture"
+                    || trimmed == "photo"
+                    || trimmed == "graphic"
+                    || trimmed == "untitled"
+                {
                     issues.push(Issue {
                         code: "IMG_SUSPICIOUS_ALT".to_string(),
                         category: Category::A11y,
                         severity: Severity::Warning,
-                        message: format!("Image \"{}\" has non-descriptive alt text: \"{}\"", src, a),
+                        message: format!(
+                            "Image \"{}\" has non-descriptive alt text: \"{}\"",
+                            src, a
+                        ),
                         selector: Some(format!("img[src=\"{}\"]", src)),
                     });
                 }

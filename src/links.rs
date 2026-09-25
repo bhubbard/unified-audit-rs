@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
-use scraper::{Html, Selector};
 use crate::models::{Category, Issue, Severity};
+use scraper::{Html, Selector};
+use std::path::{Path, PathBuf};
 
 pub struct LinkAuditConfig<'a> {
     pub root_dir: &'a Path,
@@ -39,15 +39,23 @@ pub fn audit_links(document: &Html, config: &LinkAuditConfig) -> Vec<Issue> {
                 code: "LINK_EMPTY_TEXT".to_string(),
                 category: Category::A11y,
                 severity: Severity::Warning,
-                message: format!("Link to \"{}\" has empty link text and no accessible label", href),
+                message: format!(
+                    "Link to \"{}\" has empty link text and no accessible label",
+                    href
+                ),
                 selector: Some(format!("a[href=\"{}\"]", href)),
             });
         }
 
         // 3. Skip external or protocol links
-        if href.starts_with("http://") || href.starts_with("https://") || href.starts_with("//")
-            || href.starts_with("mailto:") || href.starts_with("tel:") || href.starts_with("javascript:")
-            || href.starts_with("data:") {
+        if href.starts_with("http://")
+            || href.starts_with("https://")
+            || href.starts_with("//")
+            || href.starts_with("mailto:")
+            || href.starts_with("tel:")
+            || href.starts_with("javascript:")
+            || href.starts_with("data:")
+        {
             continue;
         }
 
@@ -76,7 +84,10 @@ pub fn audit_links(document: &Html, config: &LinkAuditConfig) -> Vec<Issue> {
                         code: "LINK_BROKEN_INPAGE_ANCHOR".to_string(),
                         category: Category::Links,
                         severity: Severity::Warning,
-                        message: format!("In-page link \"{}\" references non-existent id=\"{}\"", href, target_id),
+                        message: format!(
+                            "In-page link \"{}\" references non-existent id=\"{}\"",
+                            href, target_id
+                        ),
                         selector: Some(format!("a[href=\"{}\"]", href)),
                     });
                 }
@@ -102,7 +113,10 @@ pub fn audit_links(document: &Html, config: &LinkAuditConfig) -> Vec<Issue> {
                 code: "LINK_BROKEN_INTERNAL".to_string(),
                 category: Category::Links,
                 severity: Severity::Error,
-                message: format!("Broken internal link: \"{}\" does not resolve to an existing file in dist", href),
+                message: format!(
+                    "Broken internal link: \"{}\" does not resolve to an existing file in dist",
+                    href
+                ),
                 selector: Some(format!("a[href=\"{}\"]", href)),
             });
         }

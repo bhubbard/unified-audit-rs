@@ -1,13 +1,13 @@
 use scraper::Html;
 use std::path::Path;
 use unified_audit::{
-    seo::audit_seo,
+    Severity,
     a11y::audit_a11y,
-    schema::audit_schema,
-    links::{audit_links, LinkAuditConfig},
     capo::audit_capo,
     images::audit_images,
-    Severity,
+    links::{LinkAuditConfig, audit_links},
+    schema::audit_schema,
+    seo::audit_seo,
 };
 
 #[test]
@@ -30,8 +30,15 @@ fn test_seo_valid_page() {
 
     let doc = Html::parse_document(html);
     let issues = audit_seo(&doc);
-    let errors: Vec<_> = issues.iter().filter(|i| i.severity == Severity::Error).collect();
-    assert!(errors.is_empty(), "Expected no SEO errors, got: {:?}", errors);
+    let errors: Vec<_> = issues
+        .iter()
+        .filter(|i| i.severity == Severity::Error)
+        .collect();
+    assert!(
+        errors.is_empty(),
+        "Expected no SEO errors, got: {:?}",
+        errors
+    );
 }
 
 #[test]
@@ -62,7 +69,11 @@ fn test_a11y_violations() {
 
     assert!(a11y_issues.iter().any(|i| i.code == "A11Y_MISSING_LANG"));
     assert!(a11y_issues.iter().any(|i| i.code == "A11Y_EMPTY_BUTTON"));
-    assert!(a11y_issues.iter().any(|i| i.code == "A11Y_UNLABELLED_INPUT"));
+    assert!(
+        a11y_issues
+            .iter()
+            .any(|i| i.code == "A11Y_UNLABELLED_INPUT")
+    );
     assert!(img_issues.iter().any(|i| i.code == "IMG_MISSING_ALT"));
 }
 
@@ -95,9 +106,20 @@ fn test_a11y_implicit_labels_not_flagged() {
     let doc = Html::parse_document(html);
     let issues = audit_a11y(&doc);
 
-    let unlabelled: Vec<_> = issues.iter().filter(|i| i.code == "A11Y_UNLABELLED_INPUT").collect();
-    assert_eq!(unlabelled.len(), 1, "Expected exactly 1 unlabelled input (phone), got: {:?}", unlabelled);
-    assert!(unlabelled[0].message.contains("<input>"), "Should flag the <input> tag");
+    let unlabelled: Vec<_> = issues
+        .iter()
+        .filter(|i| i.code == "A11Y_UNLABELLED_INPUT")
+        .collect();
+    assert_eq!(
+        unlabelled.len(),
+        1,
+        "Expected exactly 1 unlabelled input (phone), got: {:?}",
+        unlabelled
+    );
+    assert!(
+        unlabelled[0].message.contains("<input>"),
+        "Should flag the <input> tag"
+    );
 }
 
 #[test]
@@ -130,8 +152,16 @@ fn test_schema_article_validation() {
     </script>"#;
 
     let issues_missing = audit_schema(html_missing);
-    assert!(issues_missing.iter().any(|i| i.code == "SCHEMA_MISSING_REQUIRED_FIELD" && i.message.contains("headline")));
-    assert!(issues_missing.iter().any(|i| i.code == "SCHEMA_MISSING_REQUIRED_FIELD" && i.message.contains("image")));
+    assert!(
+        issues_missing
+            .iter()
+            .any(|i| i.code == "SCHEMA_MISSING_REQUIRED_FIELD" && i.message.contains("headline"))
+    );
+    assert!(
+        issues_missing
+            .iter()
+            .any(|i| i.code == "SCHEMA_MISSING_REQUIRED_FIELD" && i.message.contains("image"))
+    );
 }
 
 #[test]
