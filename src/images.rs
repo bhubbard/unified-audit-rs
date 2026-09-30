@@ -1,11 +1,13 @@
 use crate::models::{Category, Issue, Severity};
 use scraper::{Html, Selector};
+use std::sync::LazyLock;
+
+static IMG_SEL: LazyLock<Selector> = LazyLock::new(|| Selector::parse("img").unwrap());
 
 pub fn audit_images(document: &Html) -> Vec<Issue> {
     let mut issues = Vec::new();
-    let img_sel = Selector::parse("img").unwrap();
 
-    for img in document.select(&img_sel) {
+    for img in document.select(&IMG_SEL) {
         let src = img.value().attr("src").unwrap_or("").trim();
         let alt = img.value().attr("alt");
         let width = img.value().attr("width");

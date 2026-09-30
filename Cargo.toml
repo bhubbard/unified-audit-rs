@@ -1,6 +1,6 @@
 [package]
 name = "unified-audit-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Brandon Hubbard"]
 description = "Consolidated sub-second post-build CI verification engine for Astro static sites covering SEO, a11y, schema, links, and Capo"

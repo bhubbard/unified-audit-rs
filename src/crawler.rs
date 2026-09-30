@@ -12,6 +12,7 @@ use crate::models::PageAuditReport;
 use crate::schema::audit_schema;
 use crate::seo::audit_seo;
 
+#[derive(Debug, Clone)]
 pub struct AuditOptions {
     pub skip_link_patterns: Vec<String>,
     pub ignore_rules: Vec<String>,

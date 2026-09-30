@@ -1,7 +1,13 @@
 use crate::models::{Category, Issue, Severity};
 use scraper::{Html, Selector};
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
+static A_HREF_SEL: LazyLock<Selector> = LazyLock::new(|| Selector::parse("a[href]").unwrap());
+static IMG_SEL: LazyLock<Selector> = LazyLock::new(|| Selector::parse("img").unwrap());
+static SVG_SEL: LazyLock<Selector> = LazyLock::new(|| Selector::parse("svg").unwrap());
+
+#[derive(Debug, Clone, Copy)]
 pub struct LinkAuditConfig<'a> {
     pub root_dir: &'a Path,
     pub current_file: &'a Path,
@@ -10,11 +16,10 @@ pub struct LinkAuditConfig<'a> {
 
 pub fn audit_links(document: &Html, config: &LinkAuditConfig) -> Vec<Issue> {
     let mut issues = Vec::new();
-    let a_sel = Selector::parse("a[href]").unwrap();
 
     let current_dir = config.current_file.parent().unwrap_or(config.root_dir);
 
-    for a in document.select(&a_sel) {
+    for a in document.select(&A_HREF_SEL) {
         let href = a.value().attr("href").unwrap_or("").trim();
         let text = a.text().collect::<String>().trim().to_string();
 
@@ -31,8 +36,8 @@ pub fn audit_links(document: &Html, config: &LinkAuditConfig) -> Vec<Issue> {
         }
 
         // 2. Check empty anchor text
-        let has_img = a.select(&Selector::parse("img").unwrap()).next().is_some();
-        let has_svg = a.select(&Selector::parse("svg").unwrap()).next().is_some();
+        let has_img = a.select(&IMG_SEL).next().is_some();
+        let has_svg = a.select(&SVG_SEL).next().is_some();
         let has_aria = a.value().attr("aria-label").is_some() || a.value().attr("title").is_some();
         if text.is_empty() && !has_img && !has_svg && !has_aria {
             issues.push(Issue {
